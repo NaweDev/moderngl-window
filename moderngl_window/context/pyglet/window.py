@@ -399,4 +399,4 @@ class PygletWrapper(pyglet.window.Window):
 
     def on_draw(self) -> None:
         """Block out the default draw method to avoid GL errors"""
-        pass
+        self._window.clear()
