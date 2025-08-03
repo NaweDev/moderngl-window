@@ -141,7 +141,7 @@ def get_local_window_cls(window: Optional[str] = None) -> type[BaseWindow]:
     """
     window = os.environ.get("MODERNGL_WINDOW") or window
     if window is None:
-        window = "pygame2"
+        window = "pyglet"
 
     return get_window_cls("moderngl_window.context.{}.Window".format(window))
 
