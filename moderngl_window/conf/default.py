@@ -1,7 +1,7 @@
 # Window / context properties
 WINDOW = {
     "gl_version": (3, 3),
-    "class": "moderngl_window.context.pyglet.Window",
+    "class": "moderngl_window.context.glfw.Window",
     "size": (1280, 720),
     "aspect_ratio": 16 / 9,
     "fullscreen": False,
