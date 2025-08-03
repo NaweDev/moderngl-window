@@ -68,7 +68,6 @@ class Window(BaseWindow):
             fullscreen=self._fullscreen,
             config=config,
             file_drops=True and platform.system() != "Darwin",
-            style=pyglet.window.Window.WINDOW_STYLE_BORDERLESS,
         )
 
         self.cursor = self._cursor
