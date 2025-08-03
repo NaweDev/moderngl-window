@@ -74,7 +74,7 @@ class BaseWindow:
     """
 
     #: Name of the window. For example ``pyglet``, ``glfw``
-    name = "base"
+    name = "glfw"
     #: Window specific key constants
     keys = BaseKeys
     #: Mouse button enum
