@@ -146,6 +146,7 @@ class VAO:
         self._buffers: list[BufferInfo] = []
         self._index_buffer: Optional[moderngl.Buffer] = None
         self._index_element_size: Optional[int] = None
+        self._instance_buffers: list[BufferInfo] = []
 
         self.vertex_count = 0
         self.vaos: dict[Any, moderngl.VertexArray] = {}
@@ -291,6 +292,52 @@ class VAO:
 
         return buffer
 
+    def instance_buffer(
+        self,
+        buffer: Union[moderngl.Buffer, npt.NDArray[Any], bytes],
+        buffer_format: str,
+        attribute_names: Union[list[str], str],
+    ) -> moderngl.Buffer:
+        """Register a buffer/vbo for the VAO. This can be called multiple times.
+        adding multiple buffers (interleaved or not).
+
+        Args:
+            buffer:
+                The buffer data. Can be ``numpy.array``, ``moderngl.Buffer`` or ``bytes``.
+            buffer_format (str):
+                The format of the buffer. (eg. ``3f 3f`` for interleaved positions and normals).
+            attribute_names:
+                A list of attribute names this buffer should map to.
+        Returns:
+            The ``moderngl.Buffer`` instance object. This is handy when providing ``bytes``
+            and ``numpy.array``.
+        """
+        if not isinstance(attribute_names, list):
+            attribute_names = [
+                attribute_names,
+            ]
+
+        if isinstance(buffer, numpy.ndarray):
+            buffer = self.ctx.buffer(buffer.tobytes())
+        elif isinstance(buffer, bytes):
+            buffer = self.ctx.buffer(data=buffer)
+
+        formats = buffer_format.split()
+        if len(formats) != len(attribute_names):
+            raise VAOError(
+                "Format '{}' does not describe attributes {}".format(buffer_format, attribute_names)
+            )
+
+        instanced_format = " ".join(f"{f}/i" for f in formats)
+
+        self._instance_buffers.append(BufferInfo(buffer, instanced_format, attribute_names))
+
+        self.vertex_count = self._buffers[-1].vertices
+
+        self.vaos.clear()
+
+        return buffer
+
     def index_buffer(
         self, buffer: Union[moderngl.Buffer, npt.NDArray[Any], bytes], index_element_size: int = 4
     ) -> None:
@@ -339,7 +386,10 @@ class VAO:
         # Make sure all attributes are covered
         for attrib_name in program_attributes:
             # Do we have a buffer mapping to this attribute?
-            if not sum(buffer.has_attribute(attrib_name) for buffer in self._buffers):
+            if not sum(
+                    buffer.has_attribute(attrib_name)
+                       for buffer in self._buffers + self._instance_buffers
+                       ):
                 raise VAOError(
                     (
                         "VAO {} doesn't have attribute {} for program {}.\n"
@@ -358,6 +408,11 @@ class VAO:
 
         # Pick out the attributes we can actually map
         for buffer in self._buffers:
+            content = buffer.content(program_attributes)
+            if content:
+                vao_content.append(content)
+
+        for buffer in self._instance_buffers:
             content = buffer.content(program_attributes)
             if content:
                 vao_content.append(content)
@@ -401,6 +456,7 @@ class VAO:
                 self._index_buffer.release()
 
         self._buffers = []
+        self._instance_buffers = []
 
     def get_buffer_by_name(self, name: str) -> Optional[BufferInfo]:
         """Get the BufferInfo associated with a specific attribute name

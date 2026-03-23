@@ -81,6 +81,7 @@ class Loader(BaseLoader):
     supported_extensions: list[str] = [
         "KHR_draco_mesh_compression",
         "KHR_materials_unlit",
+        "KHR_materials_emissive_strength"
     ]
 
     meta: SceneDescription

@@ -6,6 +6,8 @@ import pygame._sdl2
 import pygame.display
 import pygame.event
 
+import sys
+
 from moderngl_window.context.base import BaseWindow
 from moderngl_window.context.pygame2.keys import Keys
 
@@ -61,7 +63,7 @@ class Window(BaseWindow):
         # Makes us able to control window position and other properties.
         self._sdl_window = pygame._sdl2.video.Window.from_display_module()
 
-        if self.fullscreen:
+        if self.fullscreen or not sys.platform.startswith("win32"):
             self._set_fullscreen(True)
 
         self.init_mgl_context()
